@@ -25,6 +25,7 @@ func NewAPIServer(listenAddr string, store *store.PostgresStore) *APIServer {
 
 func (s *APIServer) routes() {
 	s.router.HandleFunc("/login", helpers.MakeHTTPHandleFunc(s.handleLogin))
+	s.router.HandleFunc("/refresh", helpers.MakeHTTPHandleFunc(s.handleRefresh))
 	s.router.HandleFunc("/account", s.VerifyJWT(helpers.MakeHTTPHandleFunc(s.handleAccount)))
 	s.router.HandleFunc("/account/{id}", s.VerifyJWT(helpers.MakeHTTPHandleFunc(s.handleGetAccountByID)))
 }

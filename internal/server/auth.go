@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/mail"
+	"time"
 
 	"github.com/petar-dobre/gobank/internal/helpers"
 	"github.com/petar-dobre/gobank/internal/services"
@@ -45,5 +46,42 @@ func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	refreshToken, err := services.NewRefreshToken(creds.Email)
+	if err != nil {
+		return err
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refreshToken",
+		Value:    refreshToken,
+		Expires:  time.Now().Add(72 * time.Hour), // set the same expiration as your refresh token
+		HttpOnly: true,                           // important: makes the cookie inaccessible to JavaScript
+		Path:     "/",                            // or the specific path where the cookie is valid
+		Secure:   true,                           // if your service is over HTTPS
+		SameSite: http.SameSiteStrictMode,        // CSRF protection
+	})
+
 	return helpers.WriteJSON(w, http.StatusOK, LoginDTO{token})
+}
+
+func (s *APIServer) handleRefresh(w http.ResponseWriter, r *http.Request) error {
+	cookie, err := r.Cookie("refreshToken")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return fmt.Errorf("no refresh token cookie found")
+		}
+		return err
+	}
+
+	email, err := services.VerifyJWTToken(cookie.Value)
+	if err != nil {
+		return err
+	}
+
+	newAccessToken, err := services.NewAccessToken(email)
+	if err != nil {
+		return err
+	}
+
+	return helpers.WriteJSON(w, http.StatusOK, LoginDTO{newAccessToken})
 }

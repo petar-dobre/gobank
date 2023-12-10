@@ -12,7 +12,7 @@ func (s *APIServer) VerifyJWT(next http.HandlerFunc) http.HandlerFunc {
 		tokenString := r.Header.Get("Authorization")
 		onlyToken := strings.Split(tokenString, " ")[1]
 
-		err := services.VerifyAccessToken(onlyToken)
+		_, err := services.VerifyJWTToken(onlyToken)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
