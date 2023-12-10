@@ -1,5 +1,5 @@
 build:
-			@go build -o bin/gobank
+			@go build -o bin/gobank ./cmd
 
 run: build
 			@./bin/gobank
