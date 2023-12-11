@@ -1,6 +1,5 @@
 package store
 
-
 func (s *PostgresStore) GetHashedPassword(email string) (string, error) {
 	var hashedPassword string
 

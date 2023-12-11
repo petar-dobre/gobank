@@ -2,39 +2,13 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
-	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/petar-dobre/gobank/internal/helpers"
 	"github.com/petar-dobre/gobank/internal/models"
 )
 
-func NewAccount(firstName, lastName, email, password string) *models.Account {
-	return &models.Account{
-		FirstName: firstName,
-		LastName:  lastName,
-		Email:     email,
-		Password:  password,
-		Number:    int64(rand.Intn(100000)),
-		CreatedAt: time.Now().UTC(),
-	}
-}
-
-func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error {
-	if r.Method == "GET" {
-		return s.handleGetAccount(w, r)
-	}
-
-	if r.Method == "POST" {
-		return s.handleCreateAccount(w, r)
-	}
-
-	return fmt.Errorf("method not allowed %s", r.Method)
-}
-
-func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleGetAccounts(w http.ResponseWriter, r *http.Request) error {
 	accounts, err := s.store.GetAccounts()
 	if err != nil {
 		return nil
@@ -44,25 +18,17 @@ func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) err
 }
 
 func (s *APIServer) handleGetAccountByID(w http.ResponseWriter, r *http.Request) error {
-	if r.Method == "GET" {
-		id, err := helpers.GetID(r)
-		if err != nil {
-			return err
-		}
-
-		account, err := s.store.GetAccountByID(id)
-		if err != nil {
-			return err
-		}
-
-		return helpers.WriteJSON(w, http.StatusOK, account)
+	id, err := helpers.GetID(r)
+	if err != nil {
+		return err
 	}
 
-	if r.Method == "DELETE" {
-		return s.handleDeleteAccount(w, r)
+	account, err := s.store.GetAccountByID(id)
+	if err != nil {
+		return err
 	}
 
-	return fmt.Errorf("method not allowed %s", r.Method)
+	return helpers.WriteJSON(w, http.StatusOK, account)
 }
 
 func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) error {
@@ -86,7 +52,7 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
-	account := NewAccount(createAccountReq.FirstName,
+	account := models.NewAccount(createAccountReq.FirstName,
 		createAccountReq.LastName,
 		createAccountReq.Email,
 		hashedPassword,

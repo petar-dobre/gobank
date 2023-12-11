@@ -6,12 +6,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/petar-dobre/gobank/internal/helpers"
+	"github.com/petar-dobre/gobank/internal/middleware"
 	"github.com/petar-dobre/gobank/internal/store"
 )
 
 type APIServer struct {
 	listenAddr string
-	store      *store.PostgresStore
+	store      store.Storage
 	router     *mux.Router
 }
 
@@ -24,10 +25,17 @@ func NewAPIServer(listenAddr string, store *store.PostgresStore) *APIServer {
 }
 
 func (s *APIServer) routes() {
+	// auth
 	s.router.HandleFunc("/login", helpers.MakeHTTPHandleFunc(s.handleLogin))
 	s.router.HandleFunc("/refresh", helpers.MakeHTTPHandleFunc(s.handleRefresh))
-	s.router.HandleFunc("/account", s.VerifyJWT(helpers.MakeHTTPHandleFunc(s.handleAccount)))
-	s.router.HandleFunc("/account/{id}", s.VerifyJWT(helpers.MakeHTTPHandleFunc(s.handleGetAccountByID)))
+
+	// account
+	s.router.HandleFunc("/account", middleware.VerifyJWT(helpers.MakeHTTPHandleFunc(s.handleGetAccounts))).Methods("GET")
+	s.router.HandleFunc("/account", middleware.VerifyJWT(helpers.MakeHTTPHandleFunc(s.handleCreateAccount))).Methods("POST")
+	s.router.HandleFunc("/account", middleware.VerifyJWT(helpers.MakeHTTPHandleFunc(s.handleDeleteAccount))).Methods("DELETE")
+
+	// account/id
+	s.router.HandleFunc("/account/{id}", middleware.VerifyJWT(helpers.MakeHTTPHandleFunc(s.handleGetAccountByID)))
 }
 
 func (s *APIServer) Run() {

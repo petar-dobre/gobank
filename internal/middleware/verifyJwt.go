@@ -1,4 +1,4 @@
-package server
+package middleware
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/petar-dobre/gobank/internal/services"
 )
 
-func (s *APIServer) VerifyJWT(next http.HandlerFunc) http.HandlerFunc {
+func VerifyJWT(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
 		onlyToken := strings.Split(tokenString, " ")[1]

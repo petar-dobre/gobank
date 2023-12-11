@@ -11,8 +11,9 @@ type Storage interface {
 	CreateAccount(*models.Account) error
 	DeleteAccount(int) error
 	UpdateAccount(*models.Account) error
-	GetAccounts() ([]*models.Account, error)
-	GetAccountByID(int) error
+	GetAccounts() ([]*models.AccountDTO, error)
+	GetAccountByID(int) (*models.AccountDTO, error)
+	GetHashedPassword(string) (string, error)
 }
 
 type PostgresStore struct {

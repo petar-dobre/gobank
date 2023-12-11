@@ -16,27 +16,26 @@ type CustomClaims struct {
 func NewAccessToken(email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": email,
-		"exp": time.Now().Add(time.Second * 60).Unix(),
+		"exp":   time.Now().Add(time.Second * 60).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		return "" , err
+		return "", err
 	}
 
 	return tokenString, nil
 }
 
-
-func VerifyJWTToken(tokenString  string) (string, error) {
+func VerifyJWTToken(tokenString string) (string, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-    return []byte(os.Getenv("JWT_SECRET")), nil
-  })
-	
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
+
 	if err != nil {
 		return "", err
 	}
-	
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		email, ok := claims["email"].(string)
 		if !ok {
@@ -51,7 +50,7 @@ func VerifyJWTToken(tokenString  string) (string, error) {
 func NewRefreshToken(email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": email,
-		"exp": time.Now().Add(time.Hour * 72).Unix(),
+		"exp":   time.Now().Add(time.Hour * 72).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -60,4 +59,4 @@ func NewRefreshToken(email string) (string, error) {
 	}
 
 	return tokenString, nil
-} 
+}
