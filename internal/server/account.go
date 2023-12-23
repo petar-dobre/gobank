@@ -2,16 +2,18 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/petar-dobre/gobank/internal/helpers"
 	"github.com/petar-dobre/gobank/internal/models"
 )
 
 func (s *APIServer) handleGetAccounts(w http.ResponseWriter, r *http.Request) error {
-	accounts, err := s.store.GetAccounts()
+	accounts, err := s.accountStore.GetAccounts()
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return helpers.WriteJSON(w, http.StatusOK, accounts)
@@ -23,7 +25,7 @@ func (s *APIServer) handleGetAccountByID(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	account, err := s.store.GetAccountByID(id)
+	account, err := s.accountStore.GetAccountByID(id)
 	if err != nil {
 		return err
 	}
@@ -32,6 +34,8 @@ func (s *APIServer) handleGetAccountByID(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) error {
+	defer r.Body.Close()
+
 	type CreateAccountRequest struct {
 		FirstName string `json:"firstName"`
 		LastName  string `json:"lastName"`
@@ -45,8 +49,6 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
-	defer r.Body.Close()
-
 	hashedPassword, err := helpers.HashPassword(createAccountReq.Password)
 	if err != nil {
 		return err
@@ -58,11 +60,37 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 		hashedPassword,
 	)
 
-	if err := s.store.CreateAccount(account); err != nil {
+	if err := s.accountStore.CreateAccount(account); err != nil {
 		return err
 	}
 
 	return helpers.WriteJSON(w, http.StatusOK, account)
+}
+
+func (s *APIServer) hanldeUpdateAccount(w http.ResponseWriter, r *http.Request) error {
+	defer r.Body.Close()
+
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		return fmt.Errorf("invalid id given %s", idStr)
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return fmt.Errorf("invalid id given %s", idStr)
+	}
+
+	updateAccountReq := new(models.UpdateAccountReq)
+
+	if err := json.NewDecoder(r.Body).Decode(updateAccountReq); err != nil {
+		return err
+	}
+
+	if err := s.accountStore.UpdateAccount(updateAccountReq, id); err != nil {
+		return err
+	}
+
+	return helpers.WriteJSON(w, http.StatusOK, map[string]int{"updated": id})
 }
 
 func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) error {
@@ -71,7 +99,7 @@ func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
-	if err := s.store.DeleteAccount(id); err != nil {
+	if err := s.accountStore.DeleteAccount(id); err != nil {
 		return err
 	}
 

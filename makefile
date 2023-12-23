@@ -4,5 +4,5 @@ build:
 run: build
 			@./bin/gobank
 
-test:
+test: 
 			@go test -v ./...

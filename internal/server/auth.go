@@ -32,7 +32,7 @@ func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	hashedPassword, err := s.store.GetHashedPassword(creds.Email)
+	hashedPassword, err := s.authStore.GetHashedPassword(creds.Email)
 	if err != nil {
 		return err
 	}
@@ -54,11 +54,11 @@ func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "refreshToken",
 		Value:    refreshToken,
-		Expires:  time.Now().Add(72 * time.Hour), // set the same expiration as your refresh token
-		HttpOnly: true,                           // important: makes the cookie inaccessible to JavaScript
-		Path:     "/",                            // or the specific path where the cookie is valid
-		Secure:   true,                           // if your service is over HTTPS
-		SameSite: http.SameSiteStrictMode,        // CSRF protection
+		Expires:  time.Now().Add(72 * time.Hour), 
+		HttpOnly: true,                           
+		Path:     "/",                            
+		Secure:   true,                           
+		SameSite: http.SameSiteStrictMode,        
 	})
 
 	return helpers.WriteJSON(w, http.StatusOK, LoginDTO{token})

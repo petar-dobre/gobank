@@ -4,17 +4,9 @@ import (
 	"database/sql"
 
 	_ "github.com/lib/pq"
-	"github.com/petar-dobre/gobank/internal/models"
 )
 
-type Storage interface {
-	CreateAccount(*models.Account) error
-	DeleteAccount(int) error
-	UpdateAccount(*models.Account) error
-	GetAccounts() ([]*models.AccountDTO, error)
-	GetAccountByID(int) (*models.AccountDTO, error)
-	GetHashedPassword(string) (string, error)
-}
+
 
 type PostgresStore struct {
 	db *sql.DB

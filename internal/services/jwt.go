@@ -16,7 +16,7 @@ type CustomClaims struct {
 func NewAccessToken(email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": email,
-		"exp":   time.Now().Add(time.Second * 60).Unix(),
+		"exp":   time.Now().Add(time.Minute * 60).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))

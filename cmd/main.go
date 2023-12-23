@@ -14,16 +14,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	store, err := store.NewPostgresStore()
+	pgStore, err := store.NewPostgresStore()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := store.Init(); err != nil {
+	if err := pgStore.Init(); err != nil {
 		log.Fatal(err)
 	}
 
-	server := server.NewAPIServer(":8080", store)
+	accountStore := &store.AccountStore{PostgresStore: pgStore}
+	authStore := &store.AuthStore{PostgresStore: pgStore}
+
+	server := server.NewAPIServer(":8080", accountStore, authStore)
 
 	server.Run()
 }

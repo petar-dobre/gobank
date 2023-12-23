@@ -1,5 +1,9 @@
 package store
 
+type AuthStore struct {
+	*PostgresStore
+}
+
 func (s *PostgresStore) GetHashedPassword(email string) (string, error) {
 	var hashedPassword string
 

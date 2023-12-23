@@ -7,15 +7,16 @@ import (
 	"github.com/petar-dobre/gobank/internal/models"
 )
 
-func (s *PostgresStore) CreateAccount(acc *models.Account) error {
-	fmt.Println("Im in!")
+type AccountStore struct {
+	*PostgresStore
+}
+
+func (as *AccountStore) CreateAccount(acc *models.Account) error {
 	query := `insert into account
   (first_name, last_name, email, password, number, balance, created_at)
   values ($1, $2, $3, $4, $5, $6, $7)`
 
-	fmt.Println(acc)
-
-	resp, err := s.db.Query(query,
+	_, err := as.db.Query(query,
 		acc.FirstName,
 		acc.LastName,
 		acc.Email,
@@ -29,25 +30,35 @@ func (s *PostgresStore) CreateAccount(acc *models.Account) error {
 		return err
 	}
 
-	fmt.Printf("%v\n", resp)
 	return nil
 }
 
-func (s *PostgresStore) UpdateAccount(*models.Account) error {
+func (as *AccountStore) UpdateAccount(acc *models.UpdateAccountReq, id int) error {
+	query := `update account
+	set first_name = $1, last_name = $2
+  where id = $3`
+	_, err := as.db.Query(query, acc.FirstName, acc.LastName, id)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (s *PostgresStore) DeleteAccount(id int) error {
-	_, err := s.db.Query("delete from account where id = $1", id)
+func (as *AccountStore) DeleteAccount(id int) error {
+	_, err := as.db.Query("delete from account where id = $1", id)
 	return err
 }
 
-func (s *PostgresStore) GetAccounts() ([]*models.AccountDTO, error) {
-	rows, err := s.db.Query("select * from account")
+func (as *AccountStore) GetAccounts() ([]*models.AccountDTO, error) {
+	rows, err := as.db.Query("select id, first_name, last_name, email, number, balance, created_at  from account")
 	if err != nil {
 		return nil, err
 	}
 
+	defer rows.Close()
+	
 	accounts := []*models.AccountDTO{}
 	for rows.Next() {
 		account, err := scanIntoAccount(rows)
@@ -61,8 +72,8 @@ func (s *PostgresStore) GetAccounts() ([]*models.AccountDTO, error) {
 	return accounts, nil
 }
 
-func (s *PostgresStore) GetAccountByID(id int) (*models.AccountDTO, error) {
-	rows, err := s.db.Query(`select 
+func (as *AccountStore) GetAccountByID(id int) (*models.AccountDTO, error) {
+	rows, err := as.db.Query(`select 
 	id, first_name, last_name, email, number, balance, created_at 
 	from account where id = $1`, id)
 
@@ -77,9 +88,9 @@ func (s *PostgresStore) GetAccountByID(id int) (*models.AccountDTO, error) {
 	return nil, fmt.Errorf("account %d not found", id)
 }
 
-func scanIntoAccount(rows *sql.Rows) (*models.AccountDTO, error) {
+func scanIntoAccount(row *sql.Rows) (*models.AccountDTO, error) {
 	account := new(models.AccountDTO)
-	err := rows.Scan(
+	err := row.Scan(
 		&account.ID,
 		&account.FirstName,
 		&account.LastName,

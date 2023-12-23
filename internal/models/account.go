@@ -2,6 +2,7 @@ package models
 
 import (
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -25,6 +26,19 @@ type AccountDTO struct {
 	Balance   int64     `json:"balance"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+type AccountHandler interface {
+	handleGetAccounts(w http.ResponseWriter, r *http.Request) error
+	handleGetAccountByID(w http.ResponseWriter, r *http.Request) error
+	handleCreateAccount(w http.ResponseWriter, r *http.Request) error
+	hanldeUpdateAccount(w http.ResponseWriter, r *http.Request) error
+	handleDeleteAccount(w http.ResponseWriter, r *http.Request) error
+}
+
+type UpdateAccountReq struct {
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
+	}
 
 func NewAccount(firstName, lastName, email, password string) *Account {
 	return &Account{

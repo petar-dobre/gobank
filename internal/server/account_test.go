@@ -23,8 +23,8 @@ func compareAccountDTO(a, b *models.AccountDTO) bool {
 }
 
 func TestHandleGetAccounts(t *testing.T) {
-	mockStore := mock.NewMockStore()
-	apiServer := &APIServer{store: mockStore}
+	mockStore := mock.NewAccountMockStore()
+	apiServer := &APIServer{accountStore: mockStore}
 
 	req, err := http.NewRequest("GET", "/accounts", nil)
 	if err != nil {
